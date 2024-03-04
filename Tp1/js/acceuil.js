@@ -1,139 +1,162 @@
-document.getElementById("clearAll").addEventListener("click", effacerLocalStorage);
-document.getElementById("trierTaches").addEventListener("click", trierTaches);
-document.getElementById("rechercherTache").addEventListener("click", rechercherUneTache);
+const taskInput = document.getElementById("taskInput");
+        const addTaskBtn = document.getElementById("addTask");
+        const taskList = document.getElementById("taskList");
+        const clearAll = document.getElementById("clearAll");
+        const trierTachesBtn = document.getElementById("trierTaches");
+        const rechercherTacheBtn = document.getElementById("rechercherTache");
 
+        addTaskBtn.addEventListener("click", addTask);
+        trierTachesBtn.addEventListener("click", trierTaches);
+        rechercherTacheBtn.addEventListener("click", rechercherUneTache);
 
-function save(){
-    let nom = document.getElementById("lastname").value;
-    let prenom = document.getElementById("firstname").value;
+        function w3_open() {
+            document.getElementById("mySidebar").style.display = "block";
+        }
 
-    
-    alert(nom + ", " + prenom)
-    localStorage.setItem("nom", nom);
-    localStorage.setItem("prénom", prenom);
+        function w3_close() {
+            document.getElementById("mySidebar").style.display = "none";
+        }
 
-    window.location.replace(acceuil.html);
-}
+        function addTask() {
+            const taskText = taskInput.value.trim();
 
+            if (taskText !== "") {
+                const listItem = document.createElement("li");
+                const taskTextNode = document.createElement("span");
+                taskTextNode.textContent = taskText;
+                listItem.appendChild(taskTextNode);
 
+                taskList.appendChild(listItem);
+                taskInput.value = "";
 
+                const doneBtn = document.createElement("img");
+                doneBtn.setAttribute("src", "../image/icons8-checkmark-50.png");
+                doneBtn.setAttribute('height', '18px');
+                doneBtn.setAttribute('width', '18px');
+                listItem.appendChild(doneBtn);
 
-const taskInput = document.getElementById("taskInput") ;
+                doneBtn.addEventListener("click", () => {
+                    listItem.classList.toggle("done");
+                    taskTextNode.classList.toggle("done");
+                    updateLocalStorage();
+                });
 
-const addTaskBtn = document.getElementById("addTask") ;
+                const editBtn = document.createElement("img");
+                editBtn.setAttribute("src", "../image/icons8-edit-file-50.png");
+                editBtn.setAttribute('height', '18px');
+                editBtn.setAttribute('width', '18px');
+                listItem.appendChild(editBtn);
 
-const taskList = document.getElementById("taskList") ;
+                editBtn.addEventListener("click", () => {
+                    editTask(listItem, taskTextNode);
+                });
 
-const clearAll = document.getElementById("clearAll")
+                const deleteBtn = document.createElement("img");
+                deleteBtn.setAttribute("src", "../image/icons8-delete-60.png");
+                deleteBtn.setAttribute('height', '18px');
+                deleteBtn.setAttribute('width', '18px');
+                listItem.appendChild(deleteBtn);
 
-var task = "undone task ";
-var done = "task done ";
-var i = 0;
-var j = 0;
-// La fonction trim() en JavaScript est utilisée pour supprimer les espaces (espaces, tabulations et
+                deleteBtn.addEventListener("click", () => {
+                    listItem.remove();
+                    updateLocalStorage();
+                });
+            } else {
+                alert("Veuillez entrer une tâche valide.");
+            }
+        }
 
-//nouvelles lignes) au début et à la fin d'une chaîne.
+        function editTask(listItem, taskTextNode) {
+            const newText = prompt("Modifier la tâche :", taskTextNode.textContent);
+            if (newText !== null && newText.trim() !== "") {
+                taskTextNode.textContent = newText.trim();
+                updateLocalStorage();
+            }
+        }
 
+        function updateLocalStorage() {
+            const tasks = Array.from(document.querySelectorAll("#taskList li")).map(task => {
+                return {
+                    text: task.querySelector("span").textContent.trim(),
+                    done: task.classList.contains("done")
+                };
+            });
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
 
-addTaskBtn.addEventListener("click", addTask);
+        function loadFromLocalStorage() {
+            const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks.forEach(task => {
+                const listItem = document.createElement("li");
+                const taskTextNode = document.createElement("span");
+                taskTextNode.textContent = task.text;
+                listItem.appendChild(taskTextNode);
 
+                if (task.done) {
+                    listItem.classList.add("done");
+                    taskTextNode.classList.add("done");
+                }
+                taskList.appendChild(listItem);
 
-function w3_open() {
-    document.getElementById("mySidebar").style.display = "block";
-}
- 
- function w3_close() {
-    document.getElementById("mySidebar").style.display = "none";
-}
+                const doneBtn = document.createElement("img");
+                doneBtn.setAttribute("src", "../image/icons8-checkmark-50.png");
+                doneBtn.setAttribute('height', '18px');
+                doneBtn.setAttribute('width', '18px');
+                listItem.appendChild(doneBtn);
 
-function addTask() {
+                doneBtn.addEventListener("click", () => {
+                    listItem.classList.toggle("done");
+                    taskTextNode.classList.toggle("done");
+                    updateLocalStorage();
+                });
 
-    const taskText = taskInput.value.trim();
+                const editBtn = document.createElement("img");
+                editBtn.setAttribute("src", "../image/icons8-edit-file-50.png");
+                editBtn.setAttribute('height', '18px');
+                editBtn.setAttribute('width', '18px');
+                listItem.appendChild(editBtn);
 
-    if (taskText !==""){
+                editBtn.addEventListener("click", () => {
+                    editTask(listItem, taskTextNode);
+                });
 
-    const listItem = document.createElement("li");
+                const deleteBtn = document.createElement("img");
+                deleteBtn.setAttribute("src", "../image/icons8-delete-60.png");
+                deleteBtn.setAttribute('height', '18px');
+                deleteBtn.setAttribute('width', '18px');
+                listItem.appendChild(deleteBtn);
 
-    listItem.textContent = taskText;
+                deleteBtn.addEventListener("click", () => {
+                    listItem.remove();
+                    updateLocalStorage();
+                });
+            });
+        }
 
-    taskList.appendChild(listItem);
+        function trierTaches() {
+            const taches = Array.from(document.querySelectorAll("#taskList li"));
+            taches.sort((a, b) => a.textContent.localeCompare(b.textContent));
+            taskList.innerHTML = "";
+            taches.forEach(tache => taskList.appendChild(tache));
+        }
 
-    taskInput.value = "";
+        function rechercherUneTache() {
+            const termeRecherche = prompt("Rechercher une tâche :");
+            if (termeRecherche) {
+                const taches = Array.from(document.querySelectorAll("#taskList li"));
+                taches.forEach(tache => {
+                    if (!tache.textContent.toLowerCase().includes(termeRecherche.toLowerCase())) {
+                        tache.style.display = "none";
+                    } else {
+                        tache.style.display = "block";
+                    }
+                });
+            }
+        }
 
-    const doneBtn = document.createElement("img");
+        clearAll.addEventListener("click", () => {
+            localStorage.clear();
+            taskList.innerHTML = ""; 
+        });
 
-    doneBtn.setAttribute("src", "../image/icons8-checkmark-50.png");
-    doneBtn.setAttribute('height', '18px');
-    doneBtn.setAttribute('width', '18px');
-
-    listItem.appendChild(doneBtn);
-
-    doneBtn.addEventListener("click", () => {
-        listItem.id = "taskDone"});
-
-    const editBtn = document.createElement("img");
-
-    editBtn.setAttribute("src", "../image/icons8-edit-file-50.png");
-    editBtn.setAttribute('height', '18px');
-    editBtn.setAttribute('width', '18px');
-
-    listItem.appendChild(editBtn);
-
-    editBtn.addEventListener("click", () => {
-        taskInput.value = listItem.textContent
-        listItem.remove()
-    });
-
-    const deleteBtn = document.createElement("img");
-
-    deleteBtn.setAttribute("src", "../image/icons8-delete-60.png");
-    deleteBtn.setAttribute('height', '18px');
-    deleteBtn.setAttribute('width', '18px');
-
-    // La méthode JavaScript appendChild() est utilisée pour insérer un nouveau noeud ou repositionner un
-
-    //noeud existant en tant que dernier enfant d'un noeud parent particulier.
-
-    listItem.appendChild(deleteBtn);
-
-    deleteBtn.addEventListener("click", () => {
-
-    listItem.remove();
-
-    });
-
-
-    }else{
-        alert("Veuillez entrer une tâche valide.");
-    }
-localStorage.setItem(task.concat(i), (taskText), i++)
-clearAll.addEventListener("click", () => {
-    localStorage.clear()
-})
-}
-
-function effacerLocalStorage() {
-    localStorage.clear();
-    window.location.reload();
-}
-
-function trierTaches() {
-    let taches = Array.from(document.getElementById("taskList").getElementsByTagName("li"));
-    taches.sort((a, b) => a.textContent.localeCompare(b.textContent));
-
-    document.getElementById("taskList").innerHTML = "";
-    taches.forEach(tache => document.getElementById("taskList").appendChild(tache));
-}
-
-function rechercherUneTache() {
-    let termeRecherche = prompt("chercher");
-    let taches = Array.from(document.getElementById("taskList").getElementsByTagName("li"));
-    let tacheTrouvee = taches.find(tache => tache.textContent.includes(termeRecherche));
-
-    if (tacheTrouvee) {
-        document.getElementById("taskList").innerHTML = "";
-        document.getElementById("taskList").appendChild(tacheTrouvee);
-    } else {
-        alert("Tâche non trouvée.");
-    }
-}
+        loadFromLocalStorage();
